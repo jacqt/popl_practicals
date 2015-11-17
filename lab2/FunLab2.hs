@@ -32,16 +32,18 @@ put a v mem = ((), update mem a v)
 
 -- SEMANTIC DOMAINS
 
+data Thunk = Thunk Expr Env
+
 data Value =
     IntVal Integer
   | BoolVal Bool
   | Addr Location
   | Nil | Cons Value Value
-  | Function ([M Value] -> M Value)
+  | Function ([Thunk] -> M Value)
 
 data Def =
     Const Value
-  | Param (M Value)
+  | Param Thunk
 
 type Env = Environment Def
 
@@ -55,10 +57,10 @@ eval (Number n) env = result (IntVal n)
 eval (Variable x) env =
   case find env x of
     Const v -> result v
-    Param vm -> vm
+    Param (Thunk e env) -> eval e env
 eval (Apply f es) env =
   eval f env $> (\fv ->
-    result (map (\e -> eval e env) es) $> (\args ->
+    result (map (\e -> Thunk e env) es) $> (\args ->
       apply fv args))
 eval (If e1 e2 e3) env =
   eval e1 env $> (\b ->
@@ -98,7 +100,7 @@ abstract :: [Ident] -> Expr -> Env -> Value
 abstract xs e env =
   Function (\args -> eval e (defargs env xs (map Param args)))
 
-apply :: Value -> [M Value] -> M Value
+apply :: Value -> [Thunk] -> M Value
 apply (Function f) args = f args
 apply _ args = error "applying a non-function"
 
@@ -112,9 +114,9 @@ elab (Rec x e) env =
     _ ->
       error "RHS of letrec must be a lambda"
 
-values :: [M a] -> M [a]
+values :: [Thunk] -> M [Value]
 values [] = result []
-values (xm:xms) = xm $> (\v -> values xms $> (\vs -> result (v:vs)))
+values ((Thunk e env):xms) = eval e env $> (\v -> values xms $> (\vs -> result (v:vs)))
 
 
 -- INITIAL ENVIRONMENT

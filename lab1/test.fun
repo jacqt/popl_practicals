@@ -1,12 +1,11 @@
-rec range(start, end) =
-  if start = end then
-    end else
-    start : range(start + 1, end);;
+-- Jensen's device for Fun with name parameters
 
-rec foldl(reducer, s, list) =
-  if list = nil then
-    s else
-    foldl(reducer, reducer(s, head(list)), tail(list));;
+val sum(i, a, b, f) =
+  let val s = new() in
+  i := a; s := 0;
+  while !i < b do (s := !s + f(); i := !i + 1);
+  !s;;
 
-foldl(lambda(a, b) a + b * b, 0, range(1,9));;
-
+val go() =
+  let val i = new() in
+  sum(i, 0, 10, lambda() !i * !i);;

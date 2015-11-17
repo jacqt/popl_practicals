@@ -111,7 +111,7 @@ elab (Rec x e) env =
 
 init_env :: Env
 init_env =
-  make_env [constant "nil" Nil, 
+  make_env [constant "nil" Nil,
     constant "true" (BoolVal True), constant "false" (BoolVal False),
     pureprim "+" (\ [IntVal a, IntVal b] -> IntVal (a + b)),
     pureprim "-" (\ [IntVal a, IntVal b] -> IntVal (a - b)),
@@ -131,7 +131,7 @@ init_env =
       case a of IntVal _ -> BoolVal True; _ -> BoolVal False),
     pureprim "head" (\ [Cons h t] -> h),
     pureprim "tail" (\ [Cons h t] -> t),
-    pureprim ":" (\ [a, b] -> Cons a b),	
+    pureprim ":" (\ [a, b] -> Cons a b),
     pureprim "list" (\ xs -> foldr Cons Nil xs),
     primitive "print" (\ [v] -> output (show v) $> (\ () -> result v)),
     primitive "new" (\ [] -> new $> (\a -> result (Addr a))),

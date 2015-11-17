@@ -56,23 +56,32 @@ three times
   --> 285
   >>>
 
-Presumably, the following Haskell program would do the same thing...?
-  foldl (\a b -> a + b * b) 0 [1..9]
+The modified code that would work under call-by-value semantics
 
-Or a fun equivalent:
+  -- Jensen's device for Fun with name parameters
 
-  rec range(start, end) =
-    if start > end then
-      nil else
-      start : range(start + 1, end);;
+  val sum(i, a, b, f) =
+    let val s = new() in
+    i := a; s := 0;
+    while !i < b do (s := !s + f(); i := !i + 1);
+    !s;;
 
-  rec foldl(reducer, s, xs) =
-    if xs = nil then
-      s else
-      foldl(reducer, reducer(s, head(xs)), tail(xs));;
+  val go() =
+    let val i = new() in
+    sum(i, 0, 10, lambda() !i * !i);;
 
-  foldl(lambda(a, b) a + b * b, 0, range(1,9));;
+Output:
 
+  $ ./fun test.fun
+  --- sum = <function>
+  --- go = <function>
+  >>> go();;
+  --> 285
+  >>>
 
 This work in our new Fun interpreter, happily enough.
 
+
+Optional 2.3:
+
+Ayee, it works... I guess?
