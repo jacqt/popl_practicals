@@ -1,0 +1,78 @@
+POPL Practical 2
+
+
+2.2:
+
+This is the following output of a program that demonstrates the fact that
+the arguments are not evaluated if they are not required:
+
+  val x = new();;
+  x := 3;;
+  val incX() = x := !x + 1; 0;;
+  val do_nothing(a) = !x;;
+  do_nothing(incX());;
+
+Corresponding output:
+
+  $ ./fun test.fun
+  --- x = <address 0>
+  --> 3
+  --- incX = <function>
+  --- do_nothing = <function>
+  --> 3
+
+As can be seen, the paramtere `incX()` was not evaluated in the call made to
+do_nothing
+
+                                          ------
+
+This is an example that shows that parameters are evaluated afresh each time they are used:
+
+  val x = new();;
+  x := 3;;
+  val incX() = x := !x + 1; 0;;
+  val do_something_thrice(a) = a; a; a; !x;;
+  do_something_thrice(incX());;
+
+Corresponding output:
+
+  $ ./fun test.fun
+  --- x = <address 0>
+  --> 3
+  --- incX = <function>
+  --- do_something_thrice = <function>
+  --> 6
+
+As can be seen, the parameter `incX()` was evaluated three times, causing `x` to be incremented
+three times
+
+                                          ------
+
+"Proof" that Jensen's thing works (i.e. some copy pasted output)
+  $ ./fun jensen.fun
+  --- sum = <function>
+  --- go = <function>
+  >>> go();;
+  --> 285
+  >>>
+
+Presumably, the following Haskell program would do the same thing...?
+  foldl (\a b -> a + b * b) 0 [1..9]
+
+Or a fun equivalent:
+
+  rec range(start, end) =
+    if start > end then
+      nil else
+      start : range(start + 1, end);;
+
+  rec foldl(reducer, s, xs) =
+    if xs = nil then
+      s else
+      foldl(reducer, reducer(s, head(xs)), tail(xs));;
+
+  foldl(lambda(a, b) a + b * b, 0, range(1,9));;
+
+
+This work in our new Fun interpreter, happily enough.
+
