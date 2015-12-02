@@ -1,8 +1,4 @@
 
-
-Finished....
-
-
 3.3 Strange loops!
 
 loop0 : This loops on executing the function f. Since f() = exit, it returns and terminates
@@ -13,4 +9,14 @@ loop1 : This loops over an expression that defines a function with exit as its b
 loop2 : This loops over an expression that also loops again over executing f, where f() = exit.
         The program exits the closest loop that at runtime rather than at the moment when the
         function is defined 
+
+
+3.4 Creating a continuations version of the interpreter
+
+loop0 : No longer works, because there is no loop when the `exit` tag is defined!
+
+loop1 : Works as expected
+
+loop2 : Terminates as expected, since the exit is bound textually (i.e., it exits the outter
+        loop construct rather than the inner one)
 
