@@ -10,28 +10,37 @@ import FunParser
 
 infixl 1 $>
 
+-- (Just a, mem) indicates an okay computation
+-- (Nothing, mem) would indicate computation that should exit the loop
 type M a = Mem -> (Maybe a, Mem)
 result x mem = (Just x, mem)
 
+-- The normal failure monad
 (xm $> f) mem =
   let (x, mem') = xm mem in
     case x of
       Just v -> (f $! v) mem'
       Nothing -> exit mem'
 
+-- Simply wrap the first parameter with a "Just" to make types work
 get :: Location -> M Value
 get a mem = (Just (contents mem a), mem)
 
+-- Simply wrap the first parameter with a "Just" to make types work
 put :: Location -> Value -> M ()
 put a v mem = (Just (), update mem a v)
 
+-- Simply wrap the first parameter with a "Just" to make types work
 new :: M Location
 new mem = let (a, mem') = fresh mem in (Just a, mem')
 
 bind :: Value -> M Location
 bind v = new $> (\a -> put a v $> (\ () -> result a))
 
+-- The exit monad, is simply (Nothing, mem)
 exit mem = (Nothing, mem)
+
+-- orelse works very similarily to exceptions
 orelse :: M a -> M a -> M a
 orelse xm ym mem =
   let (x, mem') = xm mem in
@@ -101,12 +110,16 @@ eval (While e1 e2) env = u
 	BoolVal False -> result Nil
 	_ -> error "boolean required in while loop")
 
+
+-- Here, u, forever loops on itself. We do this with
+-- the expecation that at some point in its computation
+-- it will "Fail" (i.e. exit), and we catch this with an
+-- orelse.
 eval (Loop e) env = u `orelse` result Nil
   where
     u = (eval e env $> (\v1 -> u))
 
 eval Exit env = exit
-
 
 eval e env =
   error ("can't evaluate " ++ pretty e)
@@ -201,7 +214,7 @@ type GloState = (Env, Mem)
 obey :: Phrase -> GloState -> (String, GloState)
 obey (Calculate exp) (env, mem) =
   let (maybeVal, mem') = eval exp env mem in
-    case maybeVal of 
+    case maybeVal of
       (Just v) -> (print_value v, (env, mem'))
       Nothing -> error "Exit called outside of a loop :("
 obey (Define def) (env, mem) =

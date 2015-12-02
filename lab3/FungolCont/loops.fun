@@ -7,8 +7,8 @@ rec f(n) =
   );
   x;;
 
--- rec loop0() =
---   let rec f() = exit in loop f();;
+rec loop0() =
+  let rec f() = exit in loop f();;
 
 rec loop1() =
   loop (let rec f() = exit in f());;

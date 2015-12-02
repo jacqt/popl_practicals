@@ -8,7 +8,7 @@ import FunParser
 
 -- MONAD
 
-
+-- Following bit copied from Cont.hs
 infixl 1 $>
 
 type Cont a = a -> Mem -> Answer
@@ -36,8 +36,11 @@ bind v = new $> (\a -> put a v $> (\ () -> result a))
 
 --------------------
 
-exit mem kx ks = kx () mem 
+exit mem kx ks = kx () mem
 
+-- Here, orelse, is implemented by creating an anonymous function
+-- to act as a special exit continuation. So if it is called
+-- in the computation of xm, then it should try the ym monad
 orelse :: M a -> M a -> M a
 orelse xm ym mem kx ks = xm mem (\_ mem' -> ym mem' kx ks) ks
 
@@ -125,9 +128,12 @@ mapm f [] = result []
 mapm f (x:xs) =
   f x $> (\y -> mapm f xs $> (\ys -> result (y:ys)))
 
+-- Very similar cocde to the original abstract, except
+-- takes the failure continuation and uses it to
+-- create a defintion with that particular continuation
 abstract :: [Ident] -> Expr -> Env -> Cont () -> Def
 abstract xs e env kx =
-  Proc (\ args -> 
+  Proc (\ args ->
     withxc kx (mapm bind args $> (\ as ->
               eval e (defargs env xs (map Ref as)))))
 
@@ -141,6 +147,9 @@ elab (Val x e) env mem kx ks =
   (eval e env $> (\ v ->
     bind v $> (\ a -> result (define env x (Ref a))))) mem kx ks
 
+-- Slightly non-standard definition, but essentially pass in the
+-- continuations into the abstract function so that they get created
+-- with the static context
 elab (Rec x (Lambda xs e1)) env mem kx ks =
   let env' = define env x (abstract xs e1 env' kx) in result env' mem kx ks
 
