@@ -1,0 +1,15 @@
+
+
+Finished....
+
+
+3.3 Strange loops!
+
+loop0 : This loops on executing the function f. Since f() = exit, it returns and terminates
+
+loop1 : This loops over an expression that defines a function with exit as its body. The 
+        function is called, and this exits the loop.
+
+loop2 : This loops over an expression that also loops again over executing f, where f() = exit.
+        The program exits the closest loop that at runtime rather than at the moment when the
+        function is defined 
